@@ -16,10 +16,10 @@ export default function BlogsDashboard({ blogs }: any) {
   const handleSave = async () => {
     try {
       if (editing) {
-        await api.put(`api/blogs/${editing._id}`, { title, slug, content });
+        await api.put(`/blogs/${editing._id}`, { title, slug, content });
         toast.success("Blog updated");
       } else {
-        await api.post("api/blogs", { title, slug, content });
+        await api.post("/blogs", { title, slug, content });
         toast.success("Blog created");
       }
       window.location.reload();
@@ -134,7 +134,7 @@ export default function BlogsDashboard({ blogs }: any) {
 
 // SSR fetch
 export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs?all=true`);
   const blogs = await res.json();
   return { props: { blogs } };
 };

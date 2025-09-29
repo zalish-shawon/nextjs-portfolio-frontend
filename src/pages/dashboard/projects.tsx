@@ -12,10 +12,10 @@ export default function ProjectsDashboard({ projects }: any) {
   const handleSave = async () => {
     try {
       if (editing) {
-        await api.put(`api/projects/${editing._id}`, { title, slug, description });
+        await api.put(`/projects/${editing._id}`, { title, slug, description });
         toast.success("Project updated");
       } else {
-        await api.post("api/projects", { title, slug, description });
+        await api.post("/projects", { title, slug, description });
         toast.success("Project created");
       }
       window.location.reload();
@@ -27,7 +27,7 @@ export default function ProjectsDashboard({ projects }: any) {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this project?")) return;
     try {
-      await api.delete(`api/projects/${id}`);
+      await api.delete(`/projects/${id}`);
       toast.success("Project deleted");
       window.location.reload();
     } catch {
@@ -137,7 +137,7 @@ export default function ProjectsDashboard({ projects }: any) {
 
 // SSR fetch
 export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects?all=true`);
   const projects = await res.json();
   return { props: { projects } };
 };
