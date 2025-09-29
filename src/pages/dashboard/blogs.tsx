@@ -1,214 +1,129 @@
 import { GetServerSideProps } from "next";
 import { useState } from "react";
-import Editor from "../../components/Editor";
 import toast from "react-hot-toast";
+import dynamic from "next/dynamic";
+import api from "@/utils/apiClient";
 
-export default function DashboardBlogs({
-  initialBlogs,
-}: {
-  initialBlogs: any[];
-}) {
-  const [blogs, setBlogs] = useState(initialBlogs || []);
-  const [open, setOpen] = useState(false);
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.snow.css";
+
+export default function BlogsDashboard({ blogs }: any) {
   const [editing, setEditing] = useState<any | null>(null);
-
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
-  const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
-  const [published, setPublished] = useState(true);
-  const [imageFile, setImageFile] = useState<File | null>(null);
 
-  function openNew() {
-    setEditing(null);
-    setTitle("");
-    setSlug("");
-    setExcerpt("");
-    setContent("");
-    setPublished(true);
-    setImageFile(null);
-    setOpen(true);
-  }
-  function openEdit(b: any) {
-    setEditing(b);
-    setTitle(b.title || "");
-    setSlug(b.slug || "");
-    setExcerpt(b.excerpt || "");
-    setContent(b.content || "");
-    setPublished(!!b.published);
-    setImageFile(null);
-    setOpen(true);
-  }
-
-  async function submitForm() {
+  const handleSave = async () => {
     try {
-      const form = new FormData();
-      form.append("title", title);
-      form.append("slug", slug);
-      form.append("excerpt", excerpt);
-      form.append("content", content);
-      form.append("published", String(published));
-      if (imageFile) form.append("image", imageFile);
-
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
-
-      let res;
       if (editing) {
-        res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${editing._id}`,
-          { method: "PUT", body: form, headers, credentials: "include" }
-        );
+        await api.put(`api/blogs/${editing._id}`, { title, slug, content });
+        toast.success("Blog updated");
       } else {
-        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`, {
-          method: "POST",
-          body: form,
-          headers,
-          credentials: "include",
-        });
+        await api.post("api/blogs", { title, slug, content });
+        toast.success("Blog created");
       }
-      if (!res.ok) throw new Error("Failed");
-      const saved = await res.json();
-      toast.success(editing ? "Updated" : "Created");
-      if (editing)
-        setBlogs(blogs.map((b) => (b._id === saved._id ? saved : b)));
-      else setBlogs([saved, ...blogs]);
-      setOpen(false);
-    } catch (err) {
-      toast.error("Save failed");
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Error saving blog");
     }
-  }
+  };
 
-  async function remove(id: string) {
-    if (!confirm("Delete blog?")) return;
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this blog?")) return;
     try {
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${id}`,
-        { method: "DELETE", headers, credentials: "include" }
-      );
-      if (!res.ok) throw new Error("Delete failed");
-      setBlogs(blogs.filter((b) => b._id !== id));
-      toast.success("Deleted");
+      await api.delete(`/blogs/${id}`);
+      toast.success("Blog deleted");
+      window.location.reload();
     } catch {
-      toast.error("Delete failed");
+      toast.error("Error deleting blog");
     }
-  }
+  };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Manage Blogs</h2>
+    <div className="p-6">
+      <div className="flex justify-between mb-4">
+        <h1 className="text-2xl font-bold">Blogs</h1>
         <button
-          onClick={openNew}
-          className="px-4 py-2 bg-blue-600 text-white rounded"
+          onClick={() => {
+            setEditing(null);
+            setTitle("");
+            setSlug("");
+            setContent("");
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
         >
           + New Blog
         </button>
       </div>
 
-      <div className="space-y-4">
-        {blogs.map((b) => (
-          <div
+      <ul className="space-y-3">
+        {blogs.map((b: any) => (
+          <li
             key={b._id}
-            className="bg-white p-4 rounded shadow flex justify-between items-center"
+            className="border p-4 rounded shadow flex justify-between"
           >
-            <div>
-              <h3 className="font-semibold">{b.title}</h3>
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {b.excerpt ||
-                  (b.content || "").replace(/<[^>]+>/g, "").slice(0, 120)}
-              </p>
-            </div>
+            <span>{b.title}</span>
             <div className="space-x-2">
               <button
-                onClick={() => openEdit(b)}
+                onClick={() => {
+                  setEditing(b);
+                  setTitle(b.title);
+                  setSlug(b.slug);
+                  setContent(b.content);
+                }}
                 className="px-3 py-1 bg-yellow-500 text-white rounded"
               >
                 Edit
               </button>
               <button
-                onClick={() => remove(b._id)}
+                onClick={() => handleDelete(b._id)}
                 className="px-3 py-1 bg-red-600 text-white rounded"
               >
                 Delete
               </button>
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-[90%] max-w-3xl p-6 rounded shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">
-                {editing ? "Edit Blog" : "New Blog"}
-              </h3>
-              <button onClick={() => setOpen(false)} className="text-gray-500">
-                Close
+      {/* Modal */}
+      {(editing || title) && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-[700px] space-y-4">
+            <h2 className="font-bold text-xl">
+              {editing ? "Edit Blog" : "New Blog"}
+            </h2>
+            <input
+              className="border px-3 py-2 w-full"
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <input
+              className="border px-3 py-2 w-full"
+              placeholder="Slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+            />
+            <ReactQuill value={content} onChange={setContent} />
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => {
+                  setEditing(null);
+                  setTitle("");
+                  setSlug("");
+                  setContent("");
+                }}
+                className="px-4 py-2 border rounded"
+              >
+                Cancel
               </button>
-            </div>
-
-            <div className="space-y-3">
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-2 border rounded"
-                placeholder="Title"
-              />
-              <input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="w-full p-2 border rounded"
-                placeholder="slug"
-              />
-              <input
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                className="w-full p-2 border rounded"
-                placeholder="Excerpt"
-              />
-              <div>
-                <label className="block mb-1 text-sm">Content</label>
-                <Editor value={content} onChange={setContent} />
-              </div>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={published}
-                    onChange={(e) => setPublished(e.target.checked)}
-                  />{" "}
-                  <span>Published</span>
-                </label>
-                <label>
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      setImageFile(e.target.files ? e.target.files[0] : null)
-                    }
-                  />
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-3">
-                <button
-                  onClick={() => setOpen(false)}
-                  className="px-4 py-2 border rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={submitForm}
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  Save
-                </button>
-              </div>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-green-600 text-white rounded"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -217,16 +132,9 @@ export default function DashboardBlogs({
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  try {
-    const res = await fetch(`${API}/api/blogs?all=true`, {
-      headers: { cookie: ctx.req.headers.cookie || "" },
-      credentials: "include",
-    });
-    const initialBlogs = await res.json();
-    return { props: { initialBlogs } };
-  } catch {
-    return { props: { initialBlogs: [] } };
-  }
+// SSR fetch
+export const getServerSideProps: GetServerSideProps = async () => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
+  const blogs = await res.json();
+  return { props: { blogs } };
 };
