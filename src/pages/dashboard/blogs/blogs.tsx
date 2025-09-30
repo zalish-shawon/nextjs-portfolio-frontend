@@ -1,27 +1,59 @@
 import { GetServerSideProps } from "next";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import dynamic from "next/dynamic";
 import api from "@/utils/apiClient";
-
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
-import "react-quill/dist/quill.snow.css";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export default function BlogsDashboard({ blogs }: any) {
   const [editing, setEditing] = useState<any | null>(null);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [tags, setTags] = useState("");
+  const [published, setPublished] = useState(false);
+  const [image, setImage] = useState<File | string | null>(null);
   const [content, setContent] = useState("");
+
+  // 🔹 Upload image to Cloudinary
+  const uploadImage = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    );
+
+    const data = await res.json();
+    return data.secure_url;
+  };
 
   const handleSave = async () => {
     try {
+      let imageUrl = typeof image === "string" ? image : null;
+      if (image && typeof image !== "string") {
+        imageUrl = await uploadImage(image);
+      }
+
+      const payload = {
+        title,
+        slug,
+        excerpt,
+        tags: tags.split(",").map((t) => t.trim()),
+        published,
+        image: imageUrl,
+        content,
+      };
+
       if (editing) {
-        await api.put(`/blogs/${editing._id}`, { title, slug, content });
+        await api.put(`api/blogs/${editing._id}`, payload);
         toast.success("Blog updated");
       } else {
-        await api.post("/blogs", { title, slug, content });
+        await api.post("/blogs", payload);
         toast.success("Blog created");
       }
+
       window.location.reload();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Error saving blog");
@@ -48,6 +80,10 @@ export default function BlogsDashboard({ blogs }: any) {
             setEditing(null);
             setTitle("");
             setSlug("");
+            setExcerpt("");
+            setTags("");
+            setPublished(false);
+            setImage(null);
             setContent("");
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded"
@@ -69,7 +105,11 @@ export default function BlogsDashboard({ blogs }: any) {
                   setEditing(b);
                   setTitle(b.title);
                   setSlug(b.slug);
-                  setContent(b.content);
+                  setExcerpt(b.excerpt || "");
+                  setTags(b.tags?.join(", ") || "");
+                  setPublished(b.published || false);
+                  setImage(b.image || null);
+                  setContent(b.content || "");
                 }}
                 className="px-3 py-1 bg-yellow-500 text-white rounded"
               >
@@ -88,30 +128,85 @@ export default function BlogsDashboard({ blogs }: any) {
 
       {/* Modal */}
       {(editing || title) && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-[700px] space-y-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-[700px] space-y-4 max-h-[90vh] overflow-y-auto">
             <h2 className="font-bold text-xl">
               {editing ? "Edit Blog" : "New Blog"}
             </h2>
+
+            {/* Title */}
             <input
               className="border px-3 py-2 w-full"
               placeholder="Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+
+            {/* Slug */}
             <input
               className="border px-3 py-2 w-full"
               placeholder="Slug"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
             />
-            <ReactQuill value={content} onChange={setContent} />
+
+            {/* Excerpt */}
+            <input
+              className="border px-3 py-2 w-full"
+              placeholder="Excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+            />
+
+            {/* Tags */}
+            <input
+              className="border px-3 py-2 w-full"
+              placeholder="Tags (comma separated)"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+            />
+
+            {/* Published */}
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={published}
+                onChange={(e) => setPublished(e.target.checked)}
+              />
+              <span>Published</span>
+            </label>
+
+            {/* Image */}
+            <div>
+              {image && (
+                <img
+                  src={typeof image === "string" ? image : URL.createObjectURL(image)}
+                  alt="Preview"
+                  className="w-32 h-20 object-cover rounded mb-2"
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files) setImage(e.target.files[0]);
+                }}
+              />
+            </div>
+
+            {/* Content */}
+            <RichTextEditor value={content} onChange={setContent} />
+
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => {
                   setEditing(null);
                   setTitle("");
                   setSlug("");
+                  setExcerpt("");
+                  setTags("");
+                  setPublished(false);
+                  setImage(null);
                   setContent("");
                 }}
                 className="px-4 py-2 border rounded"
