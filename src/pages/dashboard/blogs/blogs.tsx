@@ -15,7 +15,6 @@ export default function BlogsDashboard({ blogs }: any) {
   const [content, setContent] = useState("");
   const [blogList, setBlogList] = useState(blogs);
 
-
   // 🔹 Upload image to Cloudinary
   const uploadImage = async (file: File) => {
     const formData = new FormData();
@@ -59,9 +58,9 @@ export default function BlogsDashboard({ blogs }: any) {
       if (editing) {
         await api.put(`api/blogs/${editing._id}`, payload);
         // toast.success("Blog updated");
-            await fetchBlogs();
-    toast.success(editing ? "Blog updated" : "Blog created");
-    setEditing(null);
+        await fetchBlogs();
+        toast.success(editing ? "Blog updated" : "Blog created");
+        setEditing(null);
       } else {
         await api.post("api/blogs", payload);
         toast.success("Blog created");
