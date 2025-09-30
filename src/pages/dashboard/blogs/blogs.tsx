@@ -13,12 +13,17 @@ export default function BlogsDashboard({ blogs }: any) {
   const [published, setPublished] = useState(false);
   const [image, setImage] = useState<File | string | null>(null);
   const [content, setContent] = useState("");
+  const [blogList, setBlogList] = useState(blogs);
+
 
   // 🔹 Upload image to Cloudinary
   const uploadImage = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    );
 
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -36,6 +41,11 @@ export default function BlogsDashboard({ blogs }: any) {
         imageUrl = await uploadImage(image);
       }
 
+      const fetchBlogs = async () => {
+        const res = await api.get("/blogs?all=true");
+        setBlogList(res.data);
+      };
+
       const payload = {
         title,
         slug,
@@ -48,7 +58,10 @@ export default function BlogsDashboard({ blogs }: any) {
 
       if (editing) {
         await api.put(`api/blogs/${editing._id}`, payload);
-        toast.success("Blog updated");
+        // toast.success("Blog updated");
+            await fetchBlogs();
+    toast.success(editing ? "Blog updated" : "Blog created");
+    setEditing(null);
       } else {
         await api.post("api/blogs", payload);
         toast.success("Blog created");
@@ -180,7 +193,11 @@ export default function BlogsDashboard({ blogs }: any) {
             <div>
               {image && (
                 <img
-                  src={typeof image === "string" ? image : URL.createObjectURL(image)}
+                  src={
+                    typeof image === "string"
+                      ? image
+                      : URL.createObjectURL(image)
+                  }
                   alt="Preview"
                   className="w-32 h-20 object-cover rounded mb-2"
                 />
@@ -229,7 +246,9 @@ export default function BlogsDashboard({ blogs }: any) {
 
 // SSR fetch
 export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs?all=true`);
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/blogs?all=true`
+  );
   const blogs = await res.json();
   return { props: { blogs } };
 };
