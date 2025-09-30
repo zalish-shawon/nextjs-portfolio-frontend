@@ -12,7 +12,7 @@ export default function ProjectsDashboard({ projects }: any) {
   const handleSave = async () => {
     try {
       if (editing) {
-        await api.put(`/projects/${editing._id}`, { title, slug, description });
+        await api.put(`api/projects/${editing._id}`, { title, slug, description });
         toast.success("Project updated");
       } else {
         await api.post("/projects", { title, slug, description });

@@ -50,7 +50,7 @@ export default function BlogsDashboard({ blogs }: any) {
         await api.put(`api/blogs/${editing._id}`, payload);
         toast.success("Blog updated");
       } else {
-        await api.post("/blogs", payload);
+        await api.post("api/blogs", payload);
         toast.success("Blog created");
       }
 
