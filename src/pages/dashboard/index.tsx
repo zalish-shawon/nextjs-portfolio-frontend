@@ -8,7 +8,7 @@ export default function DashboardPage({ user }: { user: any }) {
       <p>Welcome, {user?.email}</p>
       <div className="mt-6 space-x-3">
         <a href="/dashboard/blogs/blogs" className="px-4 py-2 bg-blue-600 text-white rounded">Manage Blogs</a>
-        <a href="/dashboard/projects/blogs" className="px-4 py-2 bg-gray-800 text-white rounded">Manage Projects</a>
+        <a href="/dashboard/projects/projects" className="px-4 py-2 bg-gray-800 text-white rounded">Manage Projects</a>
       </div>
     </div>
   );
