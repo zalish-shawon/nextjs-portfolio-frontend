@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { GetStaticProps } from "next";
 import { motion } from "framer-motion";
 import Head from "next/head";

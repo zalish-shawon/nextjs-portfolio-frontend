@@ -1,4 +1,4 @@
-import React from "react";
+import React, { JSX } from "react";
 import { GetServerSideProps } from "next";
 import { motion } from "framer-motion";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
