@@ -1,40 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# B5A7 - Portfolio Website
 
-## Getting Started
+🌐 **Portfolio Website** built with NextJS, TypeScript, Tailwind CSS, and a Node.js/Express backend with MongoDB/Mongoose.  
+This project allows a portfolio owner to manage blogs, projects, and personal content via a secure private dashboard while serving public pages for visitors.
 
-First, run the development server:
+---
+
+## Project Overview
+
+The portfolio website consists of:
+
+- **Public Pages:** Accessible to all visitors (no login required)  
+  - Blog listing and individual blog pages  
+  - About Me section  
+  - Project showcase
+
+- **Private Pages:** Owner-only access  
+  - Login and authentication  
+  - Dashboard to manage blogs, projects, and other content  
+
+---
+
+## Tech Stack
+
+- **Frontend:** NextJS + TypeScript + Tailwind CSS  
+- **Backend:** Node.js + Express.js + JWT + bcrypt  
+- **Database:** PostgreSQL + Prisma OR MongoDB + Mongoose  
+- **Notifications:** react-hot-toast  
+- **Optional Rich Text Editor:** React Quill or similar  
+
+---
+
+## Features
+
+### Public Pages (Accessible to All Visitors)
+
+1. **Blog Management**
+   - View all blogs and individual blog pages.
+   - **ISR (Incremental Static Regeneration)** for blog listing (`getStaticProps`) and individual blog pages (`getStaticPaths + revalidate`) to fetch updated content dynamically.
+
+2. **About Me Section**
+   - Static personal details (name, bio, contact info, skills, work experience).
+   - Uses **SSG** for fast performance.
+
+3. **Project Showcase**
+   - Display projects with thumbnail, live link, description, and features.
+   - Supports dynamic updates using **ISR**.
+
+### Private Pages (Owner Only)
+
+1. **Authentication & Authorization**
+   - JWT-based authentication.
+   - Owner access only.
+   - Admin user seeded during backend setup.
+   - Passwords hashed using bcrypt.
+
+2. **Dashboard**
+   - Manage blogs, projects, and other content dynamically.
+   - Owner-only access with secure login.
+
+
+### Backend Setup
+
+1. **Install Dependencies**
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+cd backend
+npm install
