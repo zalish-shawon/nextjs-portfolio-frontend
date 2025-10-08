@@ -22,11 +22,14 @@ export default function Navbar() {
           <Link href="/blogs">Blogs</Link>
           <Link href="/projects">Projects</Link>
           <Link href="/about">About</Link>
-          <Link href="/dashboard">Dashboard</Link>
+
           {loggedIn ? (
-            <Link href="/logout" className="ml-3 px-3 py-1 border rounded">
-              Logout
-            </Link>
+            <>
+              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/logout" className="ml-3 px-3 py-1 border rounded">
+                Logout
+              </Link>
+            </>
           ) : (
             <Link href="/login" className="ml-3 px-3 py-1 border rounded">
               Login
