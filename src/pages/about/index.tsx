@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { GetStaticProps } from "next";
 
 export default function About({ about }: { about: any }) {
