@@ -21,6 +21,7 @@ export default function Navbar() {
         <nav className="space-x-4 text-sm flex items-center">
           <Link href="/blogs">Blogs</Link>
           <Link href="/projects">Projects</Link>
+          <Link href="/about">About</Link>
           <Link href="/dashboard">Dashboard</Link>
           {loggedIn ? (
             <Link href="/logout" className="ml-3 px-3 py-1 border rounded">
