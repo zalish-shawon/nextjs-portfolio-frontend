@@ -9,17 +9,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      const res = await api.post("/auth/login", { email, password });
-      if (res.data.token) localStorage.setItem("token", res.data.token);
-      toast.success("Logged in");
-      router.push("/dashboard");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Login failed");
-    }
+async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      credentials: "include", // ✅ send & receive cookies
+    });
+
+    if (!res.ok) throw new Error("Login failed");
+    const data = await res.json();
+
+    toast.success("Logged in successfully!");
+    router.push("/dashboard");
+  } catch (err: any) {
+    toast.error(err.message || "Login failed");
   }
+}
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
