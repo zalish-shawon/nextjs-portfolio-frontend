@@ -93,17 +93,22 @@ export default function DashboardPage({ user }: { user: any }) {
   );
 }
 
+
+
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  try {
-    const res = await fetch(`${API}/api/auth/me`, {
-      headers: { cookie: ctx.req.headers.cookie || "" },
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error("Unauthorized");
-    const user = await res.json();
-    return { props: { user } };
-  } catch {
-    return { redirect: { destination: "/login", permanent: false } };
+  const res = await fetch(`${API}/api/auth/me`, {
+    headers: { cookie: ctx.req.headers.cookie || "" },
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    return {
+      redirect: { destination: "/login", permanent: false },
+    };
   }
+
+  const user = await res.json();
+  return { props: { user } };
 };
+
