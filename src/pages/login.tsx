@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import api from "../lib/api";
 import toast from "react-hot-toast";
@@ -9,17 +9,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      const res = await api.post("/auth/login", { email, password });
-      if (res.data.token) localStorage.setItem("token", res.data.token);
-      toast.success("Logged in");
+async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  try {
+    const res = await api.post("/auth/login", { email, password });
+    
+    if (res.data.user) {
+      // Store user data instead of token
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      toast.success("Logged in successfully");
       router.push("/dashboard");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Login failed");
+    } else {
+      toast.error("Login failed: No user data received");
     }
+
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err.response?.data?.message || "Login failed");
   }
+}
+
+useEffect(() => {
+  const user = localStorage.getItem("user");
+  if (!user) router.push("/login");
+}, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">

@@ -7,9 +7,11 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    setLoggedIn(!!token);
+    // ✅ Check if a user object exists in localStorage
+    if (typeof window !== "undefined") {
+      const user = localStorage.getItem("user");
+      setLoggedIn(!!user);
+    }
   }, [router.pathname]);
 
   return (
@@ -18,6 +20,7 @@ export default function Navbar() {
         <Link href="/" className="font-bold text-lg">
           My Portfolio
         </Link>
+
         <nav className="space-x-4 text-sm flex items-center">
           <Link href="/blogs">Blogs</Link>
           <Link href="/projects">Projects</Link>
